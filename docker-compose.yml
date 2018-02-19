@@ -1,0 +1,46 @@
+version: '2.0'
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.1.3
+    volumes:
+      - /root/elkdata:/usr/share/elasticsearch/data
+      
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    restart: unless-stopped
+    network_mode: host
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
+#      nofile:
+#        soft: 65536
+#        hard: 65536
+    environment:
+#      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:6.1.3
+    ports:
+            - "5000:5000"
+            - "5001:5001"
+    network_mode: host
+    restart: unless-stopped
+    environment:
+        ELASTICSEARCH_URL: http://localhost:9200
+        LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+
+  kibana:
+    build: /root/elk/kibana
+    container_name: Kibana
+    ports:
+      - "5601:5601"
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+            - /etc/kibana:/etc/kibana
+    environment:
+      ELASTICSEARCH_URL: http://localhost:9200
